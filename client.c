@@ -6,30 +6,18 @@
 #include <string.h>
 #include "client.h"
 
-typedef struct {
-	char *key;
-	int val;
-} t_symstruct;
-
-static t_symstruct meta_lookup[] = {
-	{ "mpris:trackid", TRACK_ID },
-	{ "mpris:artUrl", ART_URL },
-	{ "xesam:artist", ARTIST },
-	{ "xesam:album", ALBUM },
-	{ "xesam:title", SONG_TITLE }
-};
-
-#define N_KEYS ( sizeof(meta_lookup) / sizeof(meta_lookup[0]) )
+#define META_LOOKUP \
+	X("mpris:trackid", TRACK_ID) \
+	X("mpris:artUrl", ART_URL) \
+	X("xesam:artist", ARTIST) \
+	X("xesam:album", ALBUM) \
+	X("xesam:title", SONG_TITLE)
 
 int key_from_string(const char *key)
 {
-	for (size_t i = 0; i < N_KEYS; ++i)
-		{
-			t_symstruct *sym = &meta_lookup[i];
-			if (!strcmp(sym->key, key))
-				return sym->val;
-		}
-
+	#define X(k, v) if (__builtin_strcmp(key, k) == 0) return v;
+	META_LOOKUP
+	#undef X
 	return -1;
 }
 
@@ -185,7 +173,7 @@ track_t *get_current_track(DBusConnection *dbus_conn, DBusError dbus_error, DBus
 						default:
 							break;
 						}
-			}
+				}
 
 		next_key:
 			dbus_message_iter_next(&array_iter);
